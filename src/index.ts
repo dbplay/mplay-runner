@@ -1,6 +1,7 @@
 import * as amqp from 'amqplib';
 import * as shortid from 'shortid';
 import { MongoShell } from 'mongodb-shell';
+import { logger } from './logger';
 
 export class Server {
 
@@ -18,7 +19,7 @@ export class Server {
         this.responsesQueueName = 'mplay-runner-responses-' + this.runnerId;
         this.errorsQueueName = 'mplay-runner-errors-' + this.runnerId;
 
-        this.mongoShell = new MongoShell(this.runnerId, process.env.MONGODB_URL || 'localhost:27017');
+        this.mongoShell = new MongoShell(this.runnerId, process.env.MONGODB_URL || 'localhost:27017', logger);
     }
 
     async start() {
@@ -42,12 +43,12 @@ export class Server {
         this.mongoShell.stdout.on('error', (data) => {
             this.channel!.sendToQueue(this.errorsQueueName, Buffer.from(data as unknown as string))
         })
-        console.log('server started')
+        logger.info('server started')
     }
 
     async listen() {
         return new Promise(() => {
-            console.log('server listenning')
+            logger.info('server listenning')
         });
     }
 

@@ -1,6 +1,8 @@
 import { Server } from '..'
 import * as amqp from 'amqplib';
 
+jest.mock('../logger')
+
 describe('index', () => {
 
     let server: Server;
