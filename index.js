@@ -9,3 +9,6 @@ module.exports = async (req, res) => {
     send(res, 200, commandOutput)
 }
 
+module.exports.close = () => {
+    mongoShell.destroy();
+}

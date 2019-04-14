@@ -11,6 +11,10 @@ describe('index', () => {
         service.close()
     })
 
+    afterAll(() => {
+        handler.close()
+    })
+
     it('creates a new shell and send command to it on a new command', async () => {
         service = micro(handler)
          url = await listen(service)
