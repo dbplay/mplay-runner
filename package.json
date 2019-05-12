@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "micro": "^9.3.3",
-    "mongodb-shell": "^0.1.0"
+    "mongodb-shell": "^0.1.2"
   },
   "devDependencies": {
     "jest": "^24.7.1",
