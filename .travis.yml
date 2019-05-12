@@ -8,7 +8,7 @@ after_success:
   - npm run lint
   - npm build
   - npm test
-  - docker build . -t mplay-runner 
+  - docker build . -t dbplay/mplay-runner 
 deploy:
   provider: script
   script: bash docker_push
