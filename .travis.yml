@@ -1,7 +1,12 @@
 language: node_js
+addons:
+  apt:
+    packages:
+    - rabbitmq-server 
 services: 
   - mongodb
   - docker
+  - rabbitmq
 node_js:
   - "12"
 after_success:
