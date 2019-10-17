@@ -4,17 +4,30 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "amqp": "^0.2.7",
+    "amqplib": "^0.5.5",
     "micro": "^9.3.3",
-    "mongodb-shell": "^0.1.2"
+    "mongodb-shell": "^1.0.1",
+    "shortid": "^2.2.15"
   },
   "devDependencies": {
+    "@types/amqp": "^0.2.4",
+    "@types/amqplib": "^0.5.13",
+    "@types/jest": "24.0.12",
+    "@types/node": "11.13.0",
+    "@types/shortid": "0.0.29",
     "jest": "^24.7.1",
+    "p-wait-for": "^3.1.0",
     "request-promise": "^4.2.4",
-    "test-listen": "^1.1.0"
+    "test-listen": "^1.1.0",
+    "ts-jest": "24.0.2",
+    "typescript": "^3.6.4"
   },
   "scripts": {
+    "build": "tsc",
+    "start": "node lib/run.js",
     "test": "jest",
-    "start": "micro"
+    "lint": "eslint --ext js,ts src"
   },
   "repository": {
     "type": "git",

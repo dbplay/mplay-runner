@@ -6,15 +6,17 @@ RUN  echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.0 main" 
 RUN apt-get update
 RUN apt-get install -y mongodb-org-shell
 
-RUN mkdir /src
-WORKDIR /src
+RUN mkdir -p /app
+WORKDIR /app
 
-COPY package.json /src/package.json
-COPY package-lock.json /src/package-lock.json
+COPY package.json /app/package.json
+COPY package-lock.json /app/package-lock.json
 
 RUN npm ci
 
-COPY index.js /src/index.js
+COPY tsconfig.json /app/tsconfig.json
+COPY src /app/src
+RUN npm run build
 
 EXPOSE 3000
 CMD [ "npm", "start" ]
