@@ -36,7 +36,10 @@ export class Server {
             if (messageBuffer) {
                 const message = JSON.parse(messageBuffer.content.toString())
                 if(message.runnerId === this.runnerId) {
+                    logger.debug(`received a message for us (${this.runnerId}) : ${message.command}`)
                     this.mongoShell.sendCommand({ in: message.command })
+                } else {
+                    logger.debug('received a message of runner ' + message.runnerId + ` our id is (${this.runnerId})`)
                 }
             }
         })
@@ -45,6 +48,7 @@ export class Server {
                 data,
                 runnerId: this.runnerId,
             }
+            logger.debug(`sending out`, message)
             this.channel!.sendToQueue(this.responsesQueueName, Buffer.from(JSON.stringify(message)))
         })
         this.mongoShell.stdout.on('error', (data) => {
@@ -52,6 +56,7 @@ export class Server {
                 data,
                 runnerId: this.runnerId,
             }
+            logger.debug(`sending error`, message)
             this.channel!.sendToQueue(this.errorsQueueName, Buffer.from(JSON.stringify(message) as unknown as string))
         })
         logger.info('server started')
@@ -68,6 +73,6 @@ export class Server {
             this.connection.close()
         }
         await this.mongoShell.destroy();
-        console.log('server stoped')
+        logger.info('server stoped')
     }
 }
