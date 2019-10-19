@@ -14,9 +14,9 @@ export class Server {
 
     constructor() {
         this.runnerId = process.env.RUNNER_ID || shortid.generate();
-        this.commandsQueueName = 'mplay-runner-commands-' + this.runnerId;
-        this.responsesQueueName = 'mplay-runner-responses-' + this.runnerId;
-        this.errorsQueueName = 'mplay-runner-errors-' + this.runnerId;
+        this.commandsQueueName = 'mplay-runner-commands';
+        this.responsesQueueName = 'mplay-runner-responses';
+        this.errorsQueueName = 'mplay-runner-errors';
 
         this.mongoShell = new MongoShell(this.runnerId, process.env.MONGODB_URL || 'localhost:27017');
     }
@@ -31,16 +31,27 @@ export class Server {
         await this.channel.assertQueue(this.responsesQueueName);
         await this.channel.assertQueue(this.errorsQueueName);
         await this.mongoShell.init();
-        this.channel.consume(this.commandsQueueName, (message) => {
-            if (message) {
-                this.mongoShell.sendCommand({ in: message.content.toString() })
+        this.channel.consume(this.commandsQueueName, (messageBuffer) => {
+            if (messageBuffer) {
+                const message = JSON.parse(messageBuffer.content.toString())
+                if(message.runnerId === this.runnerId) {
+                    this.mongoShell.sendCommand({ in: message.command })
+                }
             }
         })
         this.mongoShell.stdout.on('data', (data) => {
-            this.channel!.sendToQueue(this.responsesQueueName, Buffer.from(data))
+            const message = {
+                data,
+                runnerId: this.runnerId,
+            }
+            this.channel!.sendToQueue(this.responsesQueueName, Buffer.from(JSON.stringify(message)))
         })
         this.mongoShell.stdout.on('error', (data) => {
-            this.channel!.sendToQueue(this.errorsQueueName, Buffer.from(data as unknown as string))
+            const message = {
+                data,
+                runnerId: this.runnerId,
+            }
+            this.channel!.sendToQueue(this.errorsQueueName, Buffer.from(JSON.stringify(message) as unknown as string))
         })
         console.log('server started')
     }
@@ -56,5 +67,6 @@ export class Server {
             this.connection.close()
         }
         await this.mongoShell.destroy();
+        console.log('server stoped')
     }
 }
