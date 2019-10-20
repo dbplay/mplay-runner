@@ -13,6 +13,7 @@ export class Server {
     public readonly responsesQueueName: string;
     public readonly errorsQueueName: string;
     public readonly exchangeName: string;
+    public readonly exchangeReponseName: string;
 
     constructor() {
         this.runnerId = process.env.RUNNER_ID || shortid.generate();
@@ -20,6 +21,7 @@ export class Server {
         this.responsesQueueName = 'mplay-runner-responses';
         this.errorsQueueName = 'mplay-runner-errors';
         this.exchangeName = 'mplay-ex';
+        this.exchangeReponseName = 'mplay-response-exchange';
 
         this.mongoShell = new MongoShell(this.runnerId, process.env.MONGODB_URL || 'localhost:27017', logger);
     }
@@ -31,6 +33,7 @@ export class Server {
             throw new Error('Channel not initialized')
         }
         await this.channel.assertExchange(this.exchangeName, 'direct', { durable: false })
+        await this.channel.assertExchange(this.exchangeReponseName, 'fanout', { durable: false })
         const commandsQueue = await this.channel.assertQueue(this.commandsQueueName + '-' + this.runnerId, {
             exclusive: true,
         });
@@ -54,17 +57,19 @@ export class Server {
             const message = {
                 data,
                 runnerId: this.runnerId,
+                type: 'SUCCESS',
             }
             logger.debug(`sending out`, message)
-            this.channel!.sendToQueue(this.responsesQueueName, Buffer.from(JSON.stringify(message)))
+            this.channel!.publish(this.exchangeReponseName, this.runnerId, Buffer.from(JSON.stringify(message)))
         })
         this.mongoShell.stdout.on('error', (data) => {
             const message = {
                 data,
                 runnerId: this.runnerId,
+                type: 'ERROR',
             }
             logger.debug(`sending error`, message)
-            this.channel!.sendToQueue(this.errorsQueueName, Buffer.from(JSON.stringify(message) as unknown as string))
+            this.channel!.publish(this.exchangeReponseName, this.runnerId, Buffer.from(JSON.stringify(message)))
         })
         logger.info('server started')
     }
