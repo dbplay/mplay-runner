@@ -30,11 +30,11 @@ export class Server {
         if (!this.channel) {
             throw new Error('Channel not initialized')
         }
-        await this.channel.assertExchange(this.exchangeName, 'fanout', {durable: false})
+        await this.channel.assertExchange(this.exchangeName, 'direct', { durable: false })
         const commandsQueue = await this.channel.assertQueue(this.commandsQueueName + '-' + this.runnerId, {
             exclusive: true,
         });
-        await this.channel.bindQueue(commandsQueue.queue, this.exchangeName, '');
+        await this.channel.bindQueue(commandsQueue.queue, this.exchangeName, this.runnerId);
 
         await this.channel.assertQueue(this.responsesQueueName);
         await this.channel.assertQueue(this.errorsQueueName);
@@ -44,14 +44,10 @@ export class Server {
         await this.channel.consume(commandsQueue.queue, (messageBuffer) => {
             if (messageBuffer) {
                 const message = JSON.parse(messageBuffer.content.toString())
-                if(message.runnerId === this.runnerId) {
-                    logger.debug(`received a message for us (${this.runnerId}) : ${message.command}`)
-                    this.mongoShell.sendCommand({ in: message.command })
-                } else {
-                    logger.debug('received a message of runner ' + message.runnerId + ` our id is (${this.runnerId})`)
-                }
+                logger.debug(`received a message for us (${this.runnerId}) : ${message.command}`)
+                this.mongoShell.sendCommand({ in: message.command })
             }
-        }, {noAck: true})
+        }, { noAck: true })
         logger.info(`${this.runnerId} consuming ${this.exchangeName} on queue ${commandsQueue.queue}`)
 
         this.mongoShell.stdout.on('data', (data) => {
@@ -80,7 +76,7 @@ export class Server {
     }
 
     async stop() {
-        if(this.channel) {
+        if (this.channel) {
             await this.channel.deleteQueue(this.commandsQueueName + '-' + this.runnerId)
         }
         if (this.connection) {

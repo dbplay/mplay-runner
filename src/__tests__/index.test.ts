@@ -34,7 +34,7 @@ describe('index', () => {
     })
 
     it('can send and receive commands result throw rabbit', async (done) => {
-        const exchange = await channel.assertExchange(server.exchangeName, 'fanout', {durable: false})
+        const exchange = await channel.assertExchange(server.exchangeName, 'direct', {durable: false})
 
         channel.consume(server.responsesQueueName, (message) => {
             const jsonMessage = JSON.parse(message!.content.toString())
@@ -45,11 +45,11 @@ describe('index', () => {
         channel.consume(server.errorsQueueName, (message) => {
             done(message)
         })
-        channel.publish(exchange.exchange, '', Buffer.from(JSON.stringify({ runnerId: server.runnerId, command: 'db.toto.insert({titi: 7})' })))
+        channel.publish(exchange.exchange, server.runnerId, Buffer.from(JSON.stringify({ runnerId: server.runnerId, command: 'db.toto.insert({titi: 7})' })))
     })
 
     it('can send and receive commands errors throw rabbit', async (done) => {
-        const exchange = await channel.assertExchange(server.exchangeName, 'fanout', {durable: false})
+        const exchange = await channel.assertExchange(server.exchangeName, 'direct', {durable: false})
 
         channel.consume(server.responsesQueueName, () => {
             done('should be an error')
@@ -60,11 +60,11 @@ describe('index', () => {
             expect(jsonMessage.runnerId).toBe(server.runnerId)
             done()
         })
-        channel.publish(exchange.exchange, '', Buffer.from(JSON.stringify({ runnerId: server.runnerId, command: 'martinealaplage' })))
+        channel.publish(exchange.exchange, server.runnerId, Buffer.from(JSON.stringify({ runnerId: server.runnerId, command: 'martinealaplage' })))
     })
 
     it('does not handle events from other runners', async (done) => {
-        const exchange = await channel.assertExchange(server.exchangeName, 'fanout', {durable: false})
+        const exchange = await channel.assertExchange(server.exchangeName, 'direct', {durable: false})
 
         let received = 0;
         channel.consume(server.responsesQueueName, (message) => {
@@ -77,8 +77,8 @@ describe('index', () => {
         channel.consume(server.errorsQueueName, (message) => {
             done(message)
         })
-        channel.publish(exchange.exchange, '', Buffer.from(JSON.stringify({ runnerId: 'otherRunner', command: 'db.toto.insert({titi: 7})' })))
-        channel.publish(exchange.exchange, '',Buffer.from(JSON.stringify({ runnerId: server.runnerId, command: 'db.toto.insert({titi: 7})' })))
+        channel.publish(exchange.exchange, 'otherRunner', Buffer.from(JSON.stringify({ runnerId: 'otherRunner', command: 'db.toto.insert({titi: 7})' })))
+        channel.publish(exchange.exchange, server.runnerId,Buffer.from(JSON.stringify({ runnerId: server.runnerId, command: 'db.toto.insert({titi: 7})' })))
         
     })
 
@@ -87,25 +87,25 @@ describe('index', () => {
         const server3 = new Server();
         const server4 = new Server();
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             await server2.start();
             await server3.start();
             await server4.start();
         })
 
-        it.skip('receive all messages', async (done) => {
-            const exchange = await channel.assertExchange(server.exchangeName, 'fanout', {durable: false})
+        it('receive all messages', async (done) => {
+            const exchange = await channel.assertExchange(server.exchangeName, 'direct', {durable: false})
             channel.consume(server.responsesQueueName, () => {
                 done()
             })
             channel.consume(server.errorsQueueName, (message) => {
                 done(message)
             })
-            channel.publish(exchange.exchange, '', Buffer.from(JSON.stringify({ runnerId: server3.runnerId, command: 'db.toto.insert({titi: 7})' })))
+            channel.publish(exchange.exchange, server3.runnerId, Buffer.from(JSON.stringify({ runnerId: server3.runnerId, command: 'db.toto.insert({titi: 7})' })))
             
         })
 
-        afterAll(async () => {
+        afterEach(async () => {
             await server2.stop()
             await server3.stop()
             await server4.stop()
