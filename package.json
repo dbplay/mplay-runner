@@ -18,7 +18,7 @@
     "@types/shortid": "0.0.29",
     "jest": "24.7.1",
     "p-wait-for": "3.1.0",
-    "request-promise": "4.2.4",
+    "request-promise": "4.2.6",
     "test-listen": "1.1.0",
     "ts-jest": "24.0.2",
     "typescript": "3.6.4"
