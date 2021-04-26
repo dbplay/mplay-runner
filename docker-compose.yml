@@ -6,6 +6,6 @@ services:
     ports:
       - '27017:27017'
   rabbitmq:
-    image: rabbitmq:3.8.0
+    image: rabbitmq:3.8.14
     ports:
       - '5672:5672'      
