@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "amqp": "^0.2.7",
-    "amqplib": "^0.5.5",
+    "amqplib": "^0.7.0",
     "micro": "^9.3.3",
     "mongodb-shell": "^1.0.1",
     "shortid": "^2.2.15"
